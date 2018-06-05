@@ -14,9 +14,24 @@ describe('example with ngMockE2E', () => {
     ngMockE2E.clearMockModules();
   });
 
-  it('should have heading "It works!" if the server responds "It works!"', () => {
+  fit('should have heading "It works!" if the server responds "It works!"', async () => {
     $httpBackend.when('GET', 'heading').respond('It works!');
     browser.get('/');
+    expect(browser.getCurrentUrl()).toBe('http://localhost:8000/');
+    expect($('h1').getText()).toEqual('It works!');
+
+    $('#open-popup-button').click();
+    await browser.switchTo().window('popup');
+    ngMockE2E.addMockModule();
+    ngMockE2E.addAsDependencyForModule('example');
+    ngMockE2E.embedScript('bower_components/angular-mocks/angular-mocks.js');
+    $httpBackend.when('GET', 'heading').respond('It works in a popup!');
+    browser.refresh();
+    expect($('h1').getText()).toEqual('It works in a popup!');
+    expect(browser.getCurrentUrl()).toBe('http://localhost:8000/popup.html');
+
+    await browser.switchTo().window('')
+    expect(browser.getCurrentUrl()).toBe('http://localhost:8000/');
     expect($('h1').getText()).toEqual('It works!');
   });
 
